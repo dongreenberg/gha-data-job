@@ -32,13 +32,14 @@ def generate_url_embeddings(base_url: str):
     url_df["embeddings"] = [embedder.embed(url, normalize_embeddings=True) for url in urls]
 
     # Save the embeddings to disk
+    # Get the current git revision to track the code version. If not running from GitHub, default to "main"
     branch = os.environ.get("GITHUB_HEAD_REF", "main")
     os.makedirs(branch, exist_ok=True)
     url_df.to_csv(f"{branch}/url_embeddings.csv", index=False)
 
-    # Send to S3
-    # Get the current git revision to track the code version
-    rh.folder(path=f"{branch}").to(system="s3", path=f"/url_embeddings/{branch}")
+    # If we're running from Github, save to S3
+    if branch != "main":
+        rh.folder(path=f"{branch}").to(system="s3", path=f"runhouse/url_embeddings/{branch}")
 
 
 if __name__ == "__main__":
