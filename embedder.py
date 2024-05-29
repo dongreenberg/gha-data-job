@@ -10,7 +10,7 @@ class URLEmbedder:
         from langchain_text_splitters import RecursiveCharacterTextSplitter
 
         docs = WebBaseLoader(
-            web_paths=url,
+            web_paths=[url],
         ).load()
         splits = RecursiveCharacterTextSplitter(
             chunk_size=1000, chunk_overlap=200

@@ -9,33 +9,24 @@ from embedder import URLEmbedder
 
 def generate_url_embeddings(base_url: str):
     # We recursively extract all children URLs from the given base URL.
-    urls = extract_urls(base_url, max_depth=2)
+    urls = extract_urls(base_url, max_depth=1)
     url_df = pd.DataFrame(urls, columns=["url"])
 
     # Set up an embedder to embed the URLs on the fly on a remote GPU box
-    cluster = rh.cluster(
-        f"rh-hamilton-a10g",
-        instance_type="A10G:1",
-        auto_stop_mins=5,
-        spot=True,
-    ).up_if_not()
+    cluster = rh.cluster(f"rh-hamilton-a10g",
+                         instance_type="A10G:1",
+                         auto_stop_mins=5,
+                         spot=True).up_if_not()
     env = rh.env(
         name=f"langchain_embed_env",
-        reqs=[
-            "langchain",
-            "langchain-community",
-            "langchainhub",
-            "sentence_transformers",
-            "fake_useragent",
-        ],
+        reqs=["langchain", "langchain-community", "langchainhub", "sentence_transformers", "bs4"],
     )
-    RemoteURLEmbedder = rh.module(URLEmbedder).get_or_to(cluster, env)
+    RemoteURLEmbedder = rh.module(URLEmbedder).to(cluster, env)
     embedder = RemoteURLEmbedder(
         model_name_or_path="BAAI/bge-large-en-v1.5",
         device="cuda",
         name=f"doc_embedder",
     )
-    cluster.share(["elijah@dagworks.io"], access_level="write")
 
     # Add new column with the embeddings
     url_df["embeddings"] = [embedder.embed(url, normalize_embeddings=True) for url in urls]
