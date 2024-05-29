@@ -1,0 +1,31 @@
+# Github action to regenerate the site embeddings if a PR is opened which modified the embedding code
+name: Embed URLs
+
+on:
+  pull_request:
+    paths:
+      - 'batch_process.py'
+
+jobs:
+    build_emebeddings:
+        runs-on: ubuntu-latest
+
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Runhouse with AWS dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install runhouse[aws]
+
+      - name: Configure AWS credentials via Runhouse login
+        run: runhouse login -y ${{ secrets.RH_TOKEN }}
+
+      - name: Run the embedding script and save the embedding revision
+        run: python batch_process.py
+
