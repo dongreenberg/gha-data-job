@@ -21,7 +21,7 @@ jobs:
       - name: Install Runhouse with AWS dependencies
         run: |
             python -m pip install --upgrade pip
-            pip install runhouse[aws]
+            pip install runhouse[aws] hamilton
 
       - name: Configure AWS credentials via Runhouse login
         run: runhouse login -y ${{ secrets.RH_TOKEN }}
