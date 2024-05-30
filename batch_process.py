@@ -16,7 +16,7 @@ def generate_url_embeddings(base_url: str):
     cluster = rh.cluster(f"/dongreenberg/rh-hamilton-a10g",
                          instance_type="A10G:1",
                          auto_stop_mins=5,
-                         spot=True).up_if_not().save()
+                         spot=True).up_if_not()
     env = rh.env(
         name=f"langchain_embed_env",
         reqs=["langchain", "langchain-community", "langchainhub", "sentence_transformers", "bs4"],
