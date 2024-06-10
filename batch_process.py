@@ -1,4 +1,5 @@
 import os
+import sys
 
 import hamilton_sdk.adapters
 import pandas as pd
@@ -16,16 +17,12 @@ def urls(base_url: str, max_scrape_depth: int = 1, cutoff: int = None) -> pd.Dat
     return pd.DataFrame(relevant_urls, columns=["url"])
 
 
-def cluster() -> rh.Cluster:
-    """Sets up a cluster for embedding URLs."""
-    return rh.cluster(f"/dongreenberg/rh-hamilton-a10g",
+def embedder() -> URLEmbedder:
+    """Sets up an embedder to embed URLs on a remote GPU box."""
+    cluster = rh.cluster(f"/dongreenberg/rh-hamilton-a10g",
                       instance_type="A10G:1",
                       auto_stop_mins=5,
                       spot=True).up_if_not()
-
-
-def embedder(cluster: rh.Cluster) -> URLEmbedder:
-    """Sets up an embedder to embed URLs on a remote GPU box."""
     env = rh.env(
         name=f"langchain_embed_env",
         reqs=["langchain", "langchain-community", "langchainhub", "sentence_transformers", "bs4"],
@@ -57,22 +54,25 @@ def saved_embeddings(embeddings_df: pd.DataFrame) -> str:
     return path
 
 
-def generate_url_embeddings(base_url):
+def _generate_url_embeddings(base_url):
     """This leverages Hamilton as a few big functions. The piece that runs the
     embeddings in parallel is all done inside a single function, so those assets are not visible."""
+    import __main__
     dr = (
         driver
         .Builder()
         .with_adapters(
             hamilton_sdk.adapters.HamiltonTracker(
-                project_id=19374,
-                username="elijah@dagworks.io",
-                dag_name="runhouse_macro_version",
-                api_key=os.environ.get("DAGWORKS_API_KEY"),
-                hamilton_api_url="https://api.app.dagworks.io",
-                hamilton_ui_url="https://app.dagworks.io",
+                project_id=1,  # get from the UI -- pip install hamilton[ui]
+                username="elijah",
+                dag_name="embeddings_workflow",
+                # You can also connect to the hosted instance
+                # api_key=os.environ.get("DAGWORKS_API_KEY"),
+                # hamilton_api_url="https://api.app.dagworks.io",
+                # hamilton_ui_url="https://app.dagworks.io",
             )
         )
+        .with_modules(sys.modules[__name__])
         .build()
     )
     dr.visualize_execution(
@@ -91,4 +91,4 @@ def generate_url_embeddings(base_url):
 
 
 if __name__ == "__main__":
-    generate_url_embeddings("https://en.wikipedia.org/wiki/Poker")
+    _generate_url_embeddings("https://en.wikipedia.org/wiki/Poker")
