@@ -3,6 +3,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
+
 def _extract_urls_helper(url, visited, original_url, max_depth=1, current_depth=1):
     """
     Extracts all URLs from a given URL, recursively up to a maximum depth.

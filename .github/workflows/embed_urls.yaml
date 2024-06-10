@@ -1,10 +1,9 @@
-# Github action to regenerate the site embeddings if a PR is opened which modified the embedding code
+# Github action to regenerate the site embeddings every evening at midnight
 name: Embed URLs
 
 on:
-  pull_request:
-    paths:
-      - 'batch_process.py'
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
     build_emebeddings:
@@ -23,8 +22,9 @@ jobs:
             python -m pip install --upgrade pip
             pip install runhouse[aws] hamilton
 
-      - name: Configure AWS credentials via Runhouse login
-        run: runhouse login -y ${{ secrets.RH_TOKEN }}
+      # Optional: You can use Runhouse CLI to set up your AWS credentials
+      # - name: Configure AWS credentials via Runhouse login
+      #   run: runhouse login -y ${{ secrets.RH_TOKEN }}
 
       - name: Run the embedding script and save the embedding revision
         run: python batch_process.py
