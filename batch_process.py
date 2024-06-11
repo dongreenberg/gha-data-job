@@ -56,14 +56,15 @@ def saved_embeddings(embeddings_df: pd.DataFrame) -> str:
 
 def _generate_url_embeddings(base_url):
     """This leverages Hamilton as a few big functions. The piece that runs the
-    embeddings in parallel is all done inside a single function, so those assets are not visible."""
+    embeddings in parallel is all done inside a single function, so those assets are not visible.
+    This begins with an underscore as hamilton, by default, crawls all fns in a module, ignoring _ prefixes"""
     import __main__
     dr = (
         driver
         .Builder()
         .with_adapters(
             hamilton_sdk.adapters.HamiltonTracker(
-                project_id=1,  # get from the UI -- pip install hamilton[ui]
+                project_id=1,
                 username="elijah",
                 dag_name="embeddings_workflow",
                 # You can also connect to the hosted instance
